@@ -22,8 +22,8 @@ type INotification interface {
 
 //Notification concrete struct
 type Notification struct {
-	message    map[string]string
-	recipients []string
+	Message    map[string]string `json:"message"`
+	Recipients []string          `json:"recipients"`
 }
 
 //NewNotification constructor object used to create Notifications
@@ -33,12 +33,12 @@ func NewNotification(message map[string]string, recipients []string) Notificatio
 
 //GetMessage implemented method on Notification object
 func (n *Notification) GetMessage() map[string]string {
-	return n.message
+	return n.Message
 }
 
 //GetRecipients implemented method on Notification object
 func (n *Notification) GetRecipients() []string {
-	return n.recipients
+	return n.Recipients
 }
 
 //InitApp method for firebase
