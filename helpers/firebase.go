@@ -64,6 +64,5 @@ func (f *Firebase) PushNotification(notification INotification, recipient string
 		return "", err
 	}
 
-	msg := &messaging.Message{Data: notification.GetMessage(), Token: recipient}
-	return client.Send(context.Background(), msg)
+	return client.Send(context.Background(), &messaging.Message{Data: notification.GetMessage(), Token: recipient})
 }

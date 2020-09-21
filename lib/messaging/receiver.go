@@ -17,7 +17,7 @@ func failOnError(err error, msg string) {
 }
 
 //Consume method on the Receiver object
-func (r *Receiver) Consume(queueName string, incomingMsg interface{}, callback func(msg interface{})) {
+func (r *Receiver) Consume(queueName string, callback func(msg map[string]interface{})) {
 	manager, err := r.DeclareQueue(queueName)
 	if err != nil {
 		failOnError(err, "Error creating the queue")
@@ -33,7 +33,11 @@ func (r *Receiver) Consume(queueName string, incomingMsg interface{}, callback f
 	go func() {
 		for d := range msgs {
 			log.Printf("Received a message: %s", d.Body)
-			json.Unmarshal(d.Body, &incomingMsg) //There might be a more reasonable thing to do here than ignore the error from reading this json
+			incomingMsg := make(map[string]interface{})
+			err := json.Unmarshal(d.Body, &incomingMsg) //There might be a more reasonable thing to do here than ignore the error from reading this json
+			if err != nil {
+				log.Printf("An error occurred : %s", err)
+			}
 			callback(incomingMsg)
 		}
 	}()
