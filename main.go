@@ -8,6 +8,7 @@ import (
 	"github.com/grantfayvor/hexcord-notifications/helpers"
 	"github.com/grantfayvor/hexcord-notifications/lib/messaging"
 	"github.com/grantfayvor/hexcord-notifications/lib/notification"
+	notifier "github.com/grantfayvor/hexcord-notifications/lib/notification"
 
 	"github.com/Kamva/mgm"
 	"github.com/joho/godotenv"
@@ -41,7 +42,7 @@ func main() {
 			log.Fatalf("An error occurred while parsing the json to notification object : %s", err)
 		}
 
-		notification.SaveNotification(notification)
+		notifier.SaveNotification(notification)
 
 		for _, recipient := range notification.GetRecipients() {
 			firebase.PushNotification(notification, recipient)
@@ -51,5 +52,5 @@ func main() {
 
 func initDB() error {
 	return mgm.SetDefaultConfig(nil, "screen_recorder",
-		options.Client().ApplyURI(os.GetEnv("MONGO_URI")))
+		options.Client().ApplyURI(os.Getenv("MONGO_URI")))
 }
