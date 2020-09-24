@@ -2,14 +2,12 @@ package notification
 
 import (
 	"github.com/Kamva/mgm"
-	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
 //Notification concrete struct
 type Notification struct {
-	Message          map[string]string    `json:"message" bson:"message"`
-	Recipients       []string             `json:"recipients" bson:"recipients"`
-	RecipientIDs     []primitive.ObjectID `json:"recipientIds" bson:"recipientIds"`
+	Message          map[string]string `json:"message" bson:"message"`
+	Recipients       []string          `json:"recipients" bson:"recipients,omitempty"`
 	mgm.DefaultModel `bson:",inline"`
 }
 
@@ -30,9 +28,5 @@ func (n *Notification) GetRecipients() []string {
 
 //SaveNotification method used to store notification info in the database
 func SaveNotification(notification *Notification) error {
-	for i, id := range notification.Recipients {
-		_id, _ := primitive.ObjectIDFromHex(id)
-		notification.RecipientIDs[i] = _id
-	}
 	return mgm.Coll(notification).Create(notification)
 }
