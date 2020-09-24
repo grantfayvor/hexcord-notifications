@@ -3,11 +3,15 @@ package main
 import (
 	"encoding/json"
 	"log"
+	"os"
 
 	"github.com/grantfayvor/hexcord-notifications/helpers"
 	"github.com/grantfayvor/hexcord-notifications/lib/messaging"
+	"github.com/grantfayvor/hexcord-notifications/lib/notification"
 
+	"github.com/Kamva/mgm"
 	"github.com/joho/godotenv"
+	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
 func main() {
@@ -15,6 +19,8 @@ func main() {
 	if err != nil {
 		log.Fatal("Error loading .env file")
 	}
+
+	initDB()
 
 	mReceiver := &messaging.Receiver{}
 	mReceiver.InitiateConnection()
@@ -29,14 +35,21 @@ func main() {
 			log.Fatalf("An error occurred while marshalling the message : %s", err)
 		}
 
-		notification := &helpers.Notification{}
+		notification := &notification.Notification{}
 		err = json.Unmarshal(received, notification)
 		if err != nil {
 			log.Fatalf("An error occurred while parsing the json to notification object : %s", err)
 		}
 
+		notification.SaveNotification(notification)
+
 		for _, recipient := range notification.GetRecipients() {
 			firebase.PushNotification(notification, recipient)
 		}
 	})
+}
+
+func initDB() error {
+	return mgm.SetDefaultConfig(nil, "screen_recorder",
+		options.Client().ApplyURI(os.GetEnv("MONGO_URI")))
 }
