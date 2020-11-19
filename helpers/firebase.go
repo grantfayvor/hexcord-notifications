@@ -45,3 +45,24 @@ func (f *Firebase) PushNotification(notification INotification, recipient string
 
 	return client.Send(context.Background(), &messaging.Message{Data: notification.GetMessage(), Token: recipient})
 }
+
+//FNotification concrete struct
+type FNotification struct {
+	Message    map[string]string `json:"message"`
+	Recipients []string          `json:"recipients"`
+}
+
+//NewNotification constructor object used to create Notifications
+func NewNotification(message map[string]string, recipients []string) FNotification {
+	return FNotification{Message: message, Recipients: recipients}
+}
+
+//GetMessage implemented method on Notification object
+func (n *FNotification) GetMessage() map[string]string {
+	return n.Message
+}
+
+//GetRecipients implemented method on Notification object
+func (n *FNotification) GetRecipients() []string {
+	return n.Recipients
+}

@@ -39,7 +39,8 @@ func main() {
 		notification := &notification.Notification{}
 		err = json.Unmarshal(received, notification)
 		if err != nil {
-			log.Fatalf("An error occurred while parsing the json to notification object : %s", err)
+			log.Printf("An error occurred while parsing the json to notification object : %s", err)
+			return
 		}
 
 		notifier.SaveNotification(notification)
