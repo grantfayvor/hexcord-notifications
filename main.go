@@ -2,10 +2,13 @@ package main
 
 import (
 	"encoding/json"
+	"fmt"
 	"log"
+	"net/http"
 	"os"
 
 	"github.com/grantfayvor/hexcord-notifications/helpers"
+	"github.com/grantfayvor/hexcord-notifications/lib"
 	"github.com/grantfayvor/hexcord-notifications/lib/messaging"
 	"github.com/grantfayvor/hexcord-notifications/lib/notification"
 	notifier "github.com/grantfayvor/hexcord-notifications/lib/notification"
@@ -23,32 +26,41 @@ func main() {
 
 	initDB()
 
-	mReceiver := &messaging.Receiver{}
-	mReceiver.InitiateConnection()
-	mReceiver.Consume("notifications", func(msg map[string]interface{}) {
-		firebase, err := (&helpers.Firebase{}).InitApp()
-		if err != nil {
-			log.Fatalf("An error occurred while initializing firebase app : %s", err)
-		}
+	go func() {
+		mReceiver := &messaging.Receiver{}
+		mReceiver.InitiateConnection()
+		mReceiver.Consume("notifications", func(msg map[string]interface{}) {
+			firebase, err := (&helpers.Firebase{}).InitApp()
+			if err != nil {
+				log.Fatalf("An error occurred while initializing firebase app : %s", err)
+			}
 
-		received, err := json.Marshal(msg)
-		if err != nil {
-			log.Fatalf("An error occurred while marshalling the message : %s", err)
-		}
+			received, err := json.Marshal(msg)
+			if err != nil {
+				log.Fatalf("An error occurred while marshalling the message : %s", err)
+			}
 
-		notification := &notification.Notification{}
-		err = json.Unmarshal(received, notification)
-		if err != nil {
-			log.Printf("An error occurred while parsing the json to notification object : %s", err)
-			return
-		}
+			notification := &notification.Notification{}
+			err = json.Unmarshal(received, notification)
+			if err != nil {
+				log.Printf("An error occurred while parsing the json to notification object : %s", err)
+				return
+			}
 
-		notifier.SaveNotification(notification)
+			notifier.SaveNotification(notification)
 
-		for _, recipient := range notification.GetRecipients() {
-			firebase.PushNotification(notification, recipient)
-		}
-	})
+			for _, recipient := range notification.GetRecipients() {
+				firebase.PushNotification(notification, recipient)
+			}
+		})
+	}()
+
+	lib.InitializeRoutes()
+
+	fmt.Printf("Starting server at port %s\n", os.Getenv("PORT"))
+	if err := http.ListenAndServe(":"+os.Getenv("PORT"), nil); err != nil {
+		log.Fatal(err)
+	}
 }
 
 func initDB() error {
