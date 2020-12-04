@@ -34,7 +34,7 @@ func main() {
 	go func() {
 		mReceiver := &messaging.Receiver{}
 		mReceiver.InitiateConnection()
-		mReceiver.Consume("notifications", func(msg map[string]interface{}) {
+		mReceiver.Consume(os.Getenv("RABBIT_MQ_CONN_NOTIFICATION_QUEUE"), func(msg map[string]interface{}) {
 			firebase, err := (&helpers.Firebase{}).InitApp()
 			if err != nil {
 				log.Fatalf("An error occurred while initializing firebase app : %s", err)
