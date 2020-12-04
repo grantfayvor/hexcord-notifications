@@ -27,6 +27,7 @@ func verifyAuth(w http.ResponseWriter, r *http.Request) (user map[string]interfa
 
 	request.Header.Set("Content-type", "application/json")
 	request.Header.Set("Authorization", authorization)
+	request.Header.Set("X-Rate-Limit-Bypass-Client", os.Getenv("NOTIFICATION_CLIENT"))
 
 	client := http.Client{}
 	resp, err := client.Do(request)
