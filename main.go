@@ -1,14 +1,17 @@
 package main
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"log"
 	"net/http"
 	"os"
+	"strings"
 
 	"github.com/grantfayvor/hexcord-notifications/helpers"
 	"github.com/grantfayvor/hexcord-notifications/lib"
+	"github.com/grantfayvor/hexcord-notifications/lib/mailing"
 	"github.com/grantfayvor/hexcord-notifications/lib/messaging"
 	"github.com/grantfayvor/hexcord-notifications/lib/notification"
 	notifier "github.com/grantfayvor/hexcord-notifications/lib/notification"
@@ -24,7 +27,9 @@ func main() {
 		log.Fatal("Error loading .env file")
 	}
 
-	initDB()
+	if err := initDB(); err != nil {
+		log.Fatalf("An error occurred while trying to initialize the DB : %s", err)
+	}
 
 	go func() {
 		mReceiver := &messaging.Receiver{}
@@ -51,6 +56,33 @@ func main() {
 
 			for _, recipient := range notification.GetRecipients() {
 				firebase.PushNotification(notification, recipient)
+				notificationMessage := notification.GetMessage()
+				mailTemplate := strings.ReplaceAll(
+					strings.Replace(
+						strings.Replace(
+							strings.Replace(
+								strings.Replace(mailing.RecordingNotificationMailTemplate, "{{recipientName}}", notificationMessage["recipientName"], 1),
+								"{{thumbNail}}",
+								notificationMessage["recordThumbnail"],
+								1,
+							),
+							"{{senderName}}",
+							notificationMessage["senderName"],
+							1,
+						),
+						"{{notificationMessage}}",
+						notificationMessage["title"],
+						1,
+					),
+					"{{recordingLink}}",
+					notificationMessage["recordingLink"],
+				)
+
+				err := mailing.NewMailer().
+					InitMessage(notificationMessage["recipientEmail"], notificationMessage["title"]).
+					SendMail(mailTemplate)
+				fmt.Println("==================")
+				fmt.Println(err)
 			}
 		})
 	}()
@@ -64,6 +96,16 @@ func main() {
 }
 
 func initDB() error {
-	return mgm.SetDefaultConfig(nil, "screen_recorder",
-		options.Client().ApplyURI(os.Getenv("MONGO_URI")))
+	clientOptions := options.Client().ApplyURI(os.Getenv("MONGO_URI"))
+	err := mgm.SetDefaultConfig(nil, "screen_recorder", clientOptions)
+	if err != nil {
+		return err
+	}
+
+	client, err := mgm.NewClient(clientOptions)
+	if err != nil {
+		return err
+	}
+
+	return client.Ping(context.TODO(), nil)
 }
