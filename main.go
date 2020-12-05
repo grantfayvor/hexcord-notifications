@@ -12,6 +12,7 @@ import (
 
 	"github.com/didip/tollbooth"
 	"github.com/didip/tollbooth/limiter"
+	"github.com/getsentry/sentry-go"
 	"github.com/grantfayvor/hexcord-notifications/helpers"
 	"github.com/grantfayvor/hexcord-notifications/lib"
 	"github.com/grantfayvor/hexcord-notifications/lib/mailing"
@@ -29,6 +30,14 @@ func main() {
 	if err != nil {
 		log.Fatal("Error loading .env file")
 	}
+
+	err = sentry.Init(sentry.ClientOptions{
+		Dsn: os.Getenv("SENTRY_CLIENT"),
+	})
+	if err != nil {
+		log.Fatalf("sentry.Init: %s", err)
+	}
+	defer sentry.Flush(2 * time.Second)
 
 	if err := initDB(); err != nil {
 		log.Fatalf("An error occurred while trying to initialize the DB : %s", err)

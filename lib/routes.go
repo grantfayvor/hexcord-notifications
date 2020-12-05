@@ -10,6 +10,7 @@ import (
 
 	"github.com/didip/tollbooth"
 	"github.com/didip/tollbooth/limiter"
+	"github.com/getsentry/sentry-go"
 	"github.com/grantfayvor/hexcord-notifications/lib/notification"
 )
 
@@ -24,6 +25,7 @@ func verifyAuth(w http.ResponseWriter, r *http.Request) (user map[string]interfa
 
 	request, err := http.NewRequest("GET", os.Getenv("HEXCORD_MASTER_ENDPOINT")+"/oauth/verify_token", nil)
 	if err != nil {
+		sentry.CaptureException(err)
 		return
 	}
 
@@ -34,6 +36,7 @@ func verifyAuth(w http.ResponseWriter, r *http.Request) (user map[string]interfa
 	client := http.Client{}
 	resp, err := client.Do(request)
 	if err != nil {
+		sentry.CaptureException(err)
 		return
 	}
 	defer resp.Body.Close()
@@ -57,6 +60,7 @@ func getUserNotifications(w http.ResponseWriter, r *http.Request) {
 	user, err := verifyAuth(w, r)
 	if err != nil {
 		log.Println(err)
+		sentry.CaptureException(err)
 		http.Error(w, "Invalid credentials", http.StatusUnauthorized)
 		return
 	}
@@ -64,12 +68,14 @@ func getUserNotifications(w http.ResponseWriter, r *http.Request) {
 	userID, err := primitive.ObjectIDFromHex(user["_id"].(string))
 	if err != nil {
 		log.Println(err)
+		sentry.CaptureException(err)
 		http.Error(w, "Invalid credentials", http.StatusUnauthorized)
 		return
 	}
 	notifications, err := notification.GetUserNotifications(userID)
 	if err != nil {
 		log.Println(err)
+		sentry.CaptureException(err)
 		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
 		return
 	}

@@ -7,6 +7,7 @@ require (
 	firebase.google.com/go v3.13.0+incompatible
 	github.com/Kamva/mgm v1.2.3
 	github.com/didip/tollbooth v4.0.2+incompatible
+	github.com/getsentry/sentry-go v0.8.0
 	github.com/joho/godotenv v1.3.0
 	github.com/patrickmn/go-cache v2.1.0+incompatible // indirect
 	github.com/streadway/amqp v1.0.0
