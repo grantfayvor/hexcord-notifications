@@ -8,7 +8,10 @@ import (
 	"net/http"
 	"os"
 	"strings"
+	"time"
 
+	"github.com/didip/tollbooth"
+	"github.com/didip/tollbooth/limiter"
 	"github.com/grantfayvor/hexcord-notifications/helpers"
 	"github.com/grantfayvor/hexcord-notifications/lib"
 	"github.com/grantfayvor/hexcord-notifications/lib/mailing"
@@ -87,7 +90,12 @@ func main() {
 		})
 	}()
 
-	lib.InitializeRoutes()
+	lmt := tollbooth.NewLimiter(1, &limiter.ExpirableOptions{DefaultExpirationTTL: time.Hour}).
+		SetIPLookups([]string{"X-Forwarded-For", "RemoteAddr", "X-Real-IP"}).
+		SetMethods([]string{"GET", "POST", "DELETE", "UPDATE"}).
+		SetTokenBucketExpirationTTL(time.Hour)
+
+	lib.InitializeRoutes(lmt)
 
 	fmt.Printf("Starting server at port %s\n", os.Getenv("PORT"))
 	if err := http.ListenAndServe(":"+os.Getenv("PORT"), nil); err != nil {

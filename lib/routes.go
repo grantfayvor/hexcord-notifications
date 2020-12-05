@@ -8,6 +8,8 @@ import (
 
 	"go.mongodb.org/mongo-driver/bson/primitive"
 
+	"github.com/didip/tollbooth"
+	"github.com/didip/tollbooth/limiter"
 	"github.com/grantfayvor/hexcord-notifications/lib/notification"
 )
 
@@ -78,6 +80,6 @@ func getUserNotifications(w http.ResponseWriter, r *http.Request) {
 }
 
 //InitializeRoutes exported function to intiailize routes
-func InitializeRoutes() {
-	http.HandleFunc("/user/notifications", getUserNotifications)
+func InitializeRoutes(limiter *limiter.Limiter) {
+	http.Handle("/user/notifications", tollbooth.LimitFuncHandler(limiter, getUserNotifications))
 }
