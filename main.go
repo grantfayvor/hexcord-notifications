@@ -99,7 +99,7 @@ func main() {
 		})
 	}()
 
-	lmt := tollbooth.NewLimiter(1, &limiter.ExpirableOptions{DefaultExpirationTTL: time.Hour}).
+	lmt := tollbooth.NewLimiter(20, &limiter.ExpirableOptions{DefaultExpirationTTL: time.Hour}).
 		SetIPLookups([]string{"X-Forwarded-For", "RemoteAddr", "X-Real-IP"}).
 		SetMethods([]string{"GET", "POST", "DELETE", "UPDATE"}).
 		SetTokenBucketExpirationTTL(time.Hour)
